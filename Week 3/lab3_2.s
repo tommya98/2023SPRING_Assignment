@@ -1,6 +1,6 @@
-sram_base equ 0x200000
+sram_base equ 0x20000000
 bb_alias equ 0x22000000
-      area labc_3,code
+      area lab3_2,code
       entry
 __main proc
       export __main [weak]
@@ -19,7 +19,7 @@ start
 ;
       ldr r6,=0xbabeface
       b .
-;     ltorg
+;      ltorg
 cdata dcd 0x34567890
 cmask dcd 0xfffff7ff
       endp

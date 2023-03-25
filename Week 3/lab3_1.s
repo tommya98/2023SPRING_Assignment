@@ -1,13 +1,13 @@
     area lab3_1,code
     entry
 __main proc
-    export __main [weak]
+	export __main [weak]
 start ldr r0,=0x32
       ldr r1,data1
       adr r2,data1
       ldrb r3,[r2,#0x04]
       ldr r4,=data6
-      str r3,[r4]
+	  str r3,[r4]
       ldr r5,data1
       ldr r5,data2
       ldr r5,data3
