@@ -502,7 +502,7 @@ void mousepress(int button, int state, int x, int y) {
 		prevx = x;
 		prevy = y;
 	}
-	else if ((button == GLUT_RIGHT_BUTTON) && (state == GLUT_DOWN)) {
+	else if ((button == GLUT_RIGHT_BUTTON) && (state == GLUT_UP)) {
 		rightbuttonpressed = 0;
 	}
 }
