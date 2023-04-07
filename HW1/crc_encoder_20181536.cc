@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
   if(fp2 == NULL) {
     fclose(fp1);
     printf("output file open error.\n");
+    return 0;
   }
 
   while(1) { // 전체 문자 개수 file_len에 저장
@@ -82,7 +83,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  //프로그램 종료 절차
   fclose(fp1);
   fclose(fp2);
 
