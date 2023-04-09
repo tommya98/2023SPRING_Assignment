@@ -31,13 +31,8 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  while(1) { // 전체 문자 개수 file_len에 저장
-    char c = fgetc(fp1);
-      if(c == EOF) {
-        break;
-    }
-    file_len++;
-  }
+  fseek(fp1, 0, SEEK_END);
+  file_len = ftell(fp1);
   fseek(fp1, 0, SEEK_SET);
 
   gen_len = strlen(argv[3]); // generator 길이 gen_len에 저장 후 generator int로 저장
