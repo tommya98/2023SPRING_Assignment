@@ -81,7 +81,6 @@ int main(int argc, char *argv[]) {
 
       temp = modulo_2_div(data,generator);
       if(temp != data) {
-        printf("%d, %c", word,data >> (gen_len - 1));
         error++;
       }
       c = data >> (gen_len - 1);
