@@ -1,0 +1,35 @@
+STACK_BASE EQU 0x20000100
+      area lab6_7,code
+      entry
+__main proc
+      export __main [weak]
+start ldr sp,=STACK_BASE
+      ldr r0,=data
+	  push {r0}
+      bl copy
+stop  b stop
+      endp
+		  
+copy  proc
+	  push{r0-r2,lr}
+	  ldr r1,[sp,#0x10]
+	  adr r0,input  
+loop  ldr r2,[r0]
+      cmp r2,#0
+	  beq return
+	  str r2,[r1]
+	  add r1, #4
+	  add r0, #4
+	  b loop
+return pop {r0-r2,pc}
+      endp
+danger proc
+	  mov r0,#0
+	  mov r1,#0
+	  mov r2,#0
+	  b .
+	  ltorg 
+input dcd 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1, 0x080002F1
+	  area lab6data,data
+data  space 20
+      end
