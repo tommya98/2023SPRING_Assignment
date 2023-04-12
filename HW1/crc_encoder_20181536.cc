@@ -2,29 +2,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-int modulo_2_div(int dividend, int divisor);
-char* int_to_binary(int n);
-int binary_to_int(char *s);
-void write_file(int s);
-
 FILE *fp1, *fp2;
-int dataword_size;
-unsigned int generator = 0, gen_len, file_len = 0, code_len;
-char padding = 0, first = 1;
+unsigned int dataword_size, file_len, gen_len, code_len, padding, first = 1;
+
+void init_data(char *data, char c, int flag);
+void modulo_2_div(char *data, char *generator);
+void write_file(char *data);
 
 int main(int argc, char *argv[]) {
-  if(argc != 5) { // 인자의 수 확인
+
+  if(argc != 5) {
     printf("usage: ./crc_encoder input_file output_file generator dataword_size\n");
     return 0;
   }
 
-  fp1 = fopen(argv[1], "r"); // input_file open
+  fp1 = fopen(argv[1], "rb");
   if(fp1 == NULL) {
     printf("input file open error.\n");
     return 0;
   }
 
-  fp2 = fopen(argv[2], "w"); // output_file open
+  fp2 = fopen(argv[2], "wb");
   if(fp2 == NULL) {
     fclose(fp1);
     printf("output file open error.\n");
@@ -34,135 +32,145 @@ int main(int argc, char *argv[]) {
   fseek(fp1, 0, SEEK_END);
   file_len = ftell(fp1);
   fseek(fp1, 0, SEEK_SET);
-
-  gen_len = strlen(argv[3]); // generator 길이 gen_len에 저장 후 generator int로 저장
-  for(int i = 0; i < gen_len; i++) {
-    generator |= ((argv[3][i] - 48) << (gen_len - i - 1));
-  }
+  gen_len = strlen(argv[3]);
   dataword_size = atoi(argv[4]);
   code_len = dataword_size + gen_len - 1;
 
-  if(dataword_size == 4) { //dataword_size가 4일 때
-    int data1, data2;
-    padding = 8 - ((code_len * file_len * 2) % 8);
-    while(1) {
-      char c = fgetc(fp1);
-      if(c == EOF) {
-        break;
-      }
-      data1 = (c >> 4) << (gen_len - 1);
-      data1 = modulo_2_div(data1, generator);
-      write_file(data1);
-      data2 = (c & 0b00001111) << (gen_len - 1);
-      data2 = modulo_2_div(data2, generator);
-      write_file(data2);
-    }
-  }
-  else if(dataword_size == 8) { //dataword_size가 8일 때
-    int data;
-    padding = 8 - ((code_len * file_len) % 8);
-    while(1) {
-      char c = fgetc(fp1);
-      if(c == EOF) {
-        break;
-      }
-      data = c << (gen_len - 1);
-      data = modulo_2_div(data, generator);
+  char *data = (char *)malloc(code_len);
+  char c;
+
+  if(dataword_size == 4) {
+    padding = (8 - ((code_len * file_len * 2) % 8)) % 8;
+    while((c = fgetc(fp1)) != EOF) {
+      init_data(data, c, 0);
+      modulo_2_div(data, argv[3]);
+      write_file(data);
+
+      init_data(data, c, 1);
+      modulo_2_div(data, argv[3]);
       write_file(data);
     }
   }
-  else { //data_word 오류 확인
+  else if(dataword_size == 8) {
+    padding = (8 - ((code_len * file_len) % 8)) % 8;
+    while((c = fgetc(fp1)) != EOF) {
+      init_data(data, c, 2);
+      modulo_2_div(data, argv[3]);
+      write_file(data);
+    }
+  }
+  else {
     printf("dataword size must be 4 or 8.\n");
     fclose(fp1);
     fclose(fp2);
+    free(data);
     return 0;
   }
 
+  free(data);
   fclose(fp1);
   fclose(fp2);
-
   return 0;
 }
 
-int modulo_2_div(int dividend, int divisor) { //dataword가 정수로 들어오면 codeword를 정수로 내보낸다.
-  char *dividend_char = int_to_binary(dividend);
-  char *divisor_char = int_to_binary(divisor);
-  char *generator_char = (char*)malloc(gen_len);
-  char *result_char = (char*)malloc(gen_len - 1);
-  int size = 32, result;
-
-  for(int i = 0; i < gen_len; i++) {
-    generator_char[i] = divisor_char[32 - gen_len + i];
+void init_data(char *data, char c, int flag) {
+  for(int i = 0; i < code_len; i++) {
+    data[i] = '0';
   }
+  if(flag == 0) {
+    if(c & 0b10000000) {
+      data[0] = '1';
+    }
+    if(c & 0b01000000) {
+      data[1] = '1';
+    }
+    if(c & 0b00100000) {
+      data[2] = '1';
+    }
+    if(c & 0b00010000) {
+      data[3] = '1';
+    }
+  }
+  else if(flag == 1) {
+    if(c & 0b00001000) {
+      data[0] = '1';
+    }
+    if(c & 0b00000100) {
+      data[1] = '1';
+    }
+    if(c & 0b00000010) {
+      data[2] = '1';
+    }
+    if(c & 0b00000001) {
+      data[3] = '1';
+    }
+  }
+  else if(flag == 2) {
+    if(c & 0b10000000) {
+      data[0] = '1';
+    }
+    if(c & 0b01000000) {
+      data[1] = '1';
+    }
+    if(c & 0b00100000) {
+      data[2] = '1';
+    }
+    if(c & 0b00010000) {
+      data[3] = '1';
+    }
+    if(c & 0b00001000) {
+      data[4] = '1';
+    }
+    if(c & 0b00000100) {
+      data[5] = '1';
+    }
+    if(c & 0b00000010) {
+      data[6] = '1';
+    }
+    if(c & 0b00000001) {
+      data[7] = '1';
+    }    
+  }
+}
 
-  for(int i = 0; i <= 32 - gen_len; i++) {
-    if(dividend_char[i] == '0') {
+void modulo_2_div(char *data, char *generator) {
+  char *data_copy;
+  data_copy = (char *)malloc(code_len);
+  memcpy(data_copy, data, code_len);
+
+  for(int i = 0; i < dataword_size; i++) {
+    if(data_copy[i] == '0') {
       continue;
     }
     for(int j = 0; j < gen_len; j++) {
-      if(dividend_char[i + j] == generator_char[j]) {
-        dividend_char[i + j] = '0';
+      if(data_copy[i + j] == generator[j]) {
+        data_copy[i + j] = '0';
       }
       else {
-        dividend_char[i + j] = '1';
+        data_copy[i + j] = '1';
       }
     }
   }
 
-  for(int i = 0; i < gen_len - 1; i++) {
-    result_char[i] = dividend_char[33 - gen_len + i];
-  }
-  result = binary_to_int(result_char);
-
-  free(dividend_char);
-  free(divisor_char);
-  free(generator_char);
-  free(result_char);
-
-  return dividend + result;
-}
-
-char* int_to_binary(int n) { //정수를 binary 문자열로 변환
-  char* s = (char*)malloc(32);
-  memset(s, '0', 32);
-
-  for(int i = 31; i >= 0; i--) {
-    if(n & (1 << i)) {
-      s[31 - i] = '1';
-    }
+  for(int i = dataword_size; i < code_len; i++) {
+    data[i] = data_copy[i];
   }
 
-  return s;
+  free(data_copy);
 }
 
-int binary_to_int(char *s) { //binary 문자열을 정수로 변환
-  int len = strlen(s);
-  int result = 0, two = 1;
-  
-  for(int i = len - 1; i >= 0; i--) {
-    if(s[i] == '1') {
-      result += two;
-    }
-    two *= 2;
-  }
-    
-  return result;
-}
-
-void write_file(int n) { //codeword를 파일에 출력
+void write_file(char *data) {
   static unsigned char c = 0;
-  static int flag = 0;
-  int n_flag = 32 - code_len;
-  char *n_char = int_to_binary(n);
+  static int flag;
 
   if(first == 1) {
     fprintf(fp2, "%c", padding);
-    flag += padding;
-    first = 0;
+    flag = padding;
+    first = 0;    
   }
 
-  while(1) {
-    if(n_char[n_flag] == '1') {
+  for(int i = 0; i < code_len; i++) {
+    if(data[i] == '1') {
       c |= (1 << (7 - flag));
     }
     else {
@@ -170,20 +178,9 @@ void write_file(int n) { //codeword를 파일에 출력
     }
 
     flag++;
-    n_flag++;
-
-    if((n_flag == 32)) {
-      if(flag == 8) {
-        fprintf(fp2, "%c", c);
-        flag = 0;
-      }
-      break;
-    }
     if(flag == 8) {
       fprintf(fp2, "%c", c);
       flag = 0;
     }
   }
-
-  free(n_char);
 }
